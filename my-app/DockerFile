@@ -1,0 +1,25 @@
+FROM node:20-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the React app for production
+RUN npm run build
+
+# Install 'serve' globally to serve the static files
+RUN npm install -g serve
+
+# Expose the port the app will run on (e.g., 3000 for 'serve')
+EXPOSE 3000
+
+# Command to run the application using 'serve'
+CMD ["serve", "-s", "build", "-l", "3000"]

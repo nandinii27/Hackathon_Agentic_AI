@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db # Persistent data volume
+    networks:
+      - supply_chain_network
+
+  # Flask Backend Service
+  flask_backend:
+    build:
+      context: . # Build context is the current directory where main.py and Dockerfile are
+      dockerfile: Dockerfile # Refers to the Dockerfile in the current directory
+    container_name: flask_backend_container
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/supply_chain_db?authSource=admin
+      MONGO_DB_NAME: supply_chain_db
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      RAW_PRODUCT_STORAGE_EMAIL: ${RAW_PRODUCT_STORAGE_EMAIL}
+      MANUFACTURING_EMAIL: ${MANUFACTURING_EMAIL}
+      WEATHERAPI_KEY: ${WEATHERAPI_KEY}
+      NEWSDATA_API_KEY: ${NEWSDATA_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      APP_IDENTIFIER: ${APP_IDENTIFIER}
+    depends_on:
+      - mongodb # Ensure MongoDB starts before Flask
+    networks:
+      - supply_chain_network
+
+  # React Frontend Service
+  react_frontend:
+    build:
+      context: ./frontend # Assuming your React app is in a 'frontend' subdirectory
+      dockerfile: Dockerfile # Refers to the Dockerfile inside 'frontend'
+    container_name: react_frontend_container
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000 (where 'serve' runs)
+    depends_on:
+      - flask_backend # Ensure Flask backend is running before React frontend
+    networks:
+      - supply_chain_network
+
+volumes:
+  mongo_data: # Define the named volume for MongoDB persistence
+
+networks:
+  supply_chain_network:
+    driver: bridge
