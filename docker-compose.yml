@@ -11,7 +11,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
-      - mongo_data:/data/db # Persistent data volume
+      # Map a local directory to the container's data directory for persistence
+      - ./mongo-data:/data/db # <--- CHANGE HERE: This maps a local folder named 'mongo-data'
     networks:
       - supply_chain_network
 
@@ -55,7 +56,8 @@ services:
       - supply_chain_network
 
 volumes:
-  mongo_data: # Define the named volume for MongoDB persistence
+  # Removed the named volume as we are using a bind mount to a local directory
+  # mongo_data: # Define the named volume for MongoDB persistence
 
 networks:
   supply_chain_network:
